@@ -2,6 +2,11 @@
 
 A simple AI-powered web application that extracts action items from meeting transcripts and allows you to manage them in a mini task workspace.
 
+You can check the live project here :- https://meeting-action-item-tracker.onrender.com/ (this takes 50-60 sec to load, since this is hosted for free on render)
+
+# Note
+Sometimes the transcripts are not processed because this project is using hugging face api and it has token limits. You can check the status page, /status, it will throw 404 for llm, which means the token limits are expired.
+
 ---
 
 ## Demo
