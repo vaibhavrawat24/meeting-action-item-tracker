@@ -5,6 +5,7 @@ import requests
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
 from models import db, Transcript, ActionItem
+from sqlalchemy import text
 
 load_dotenv()
 
@@ -183,6 +184,46 @@ def edit_item(item_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"success": False, "error": str(e)}), 500
+    
+@app.route("/status")
+def status():
+    status_report = {
+        "backend": "ok",
+        "database": "unknown",
+        "llm_connection": "unknown"
+    }
+
+    try:
+        db.session.execute(text("SELECT 1"))
+        status_report["database"] = "ok"
+    except Exception as e:
+        status_report["database"] = f"error: {str(e)}"
+
+    try:
+        headers = {
+            "Authorization": f"Bearer {HF_TOKEN}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "model": HF_MODEL,
+            "messages": [
+                {"role": "user", "content": "Respond with 'ok' only."}
+            ],
+            "temperature": 0
+        }
+
+        response = requests.post(HF_API_URL, headers=headers, json=payload, timeout=5)
+
+        if response.status_code == 200:
+            status_report["llm_connection"] = "ok"
+        else:
+            status_report["llm_connection"] = f"error: {response.status_code}"
+
+    except Exception as e:
+        status_report["llm_connection"] = f"error: {str(e)}"
+
+    return jsonify(status_report)
 
 
 if __name__ == "__main__":
