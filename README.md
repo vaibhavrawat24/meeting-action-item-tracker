@@ -23,6 +23,9 @@ A simple AI-powered web application that extracts action items from meeting tran
 - Mark items as done / undo
 - Filter items (All / Open / Done)
 - View history of the last 5 processed transcripts
+---
+## What Is not Implemented
+- ⚠️ This website is currently not mobile responsive due to time constraints.
 
 ---
 
