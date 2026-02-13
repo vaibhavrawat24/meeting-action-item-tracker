@@ -132,7 +132,6 @@ def toggle_done(item_id):
 
 @app.route("/item/<int:item_id>", methods=["DELETE"])
 def delete_item(item_id):
-    print("hi")
     item = ActionItem.query.get_or_404(item_id)
     db.session.delete(item)
     db.session.commit()
