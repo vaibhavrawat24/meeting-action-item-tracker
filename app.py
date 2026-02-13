@@ -14,14 +14,12 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
 
-# 🔹 Hugging Face Config
 HF_TOKEN = os.getenv("HF_TOKEN")
 HF_MODEL = os.getenv("HF_MODEL", "deepseek-ai/DeepSeek-V3-0324")
 HF_API_URL = "https://router.huggingface.co/v1/chat/completions"
 
 with app.app_context():
     db.create_all()
-
 
 def extract_json_from_text(text):
     """
@@ -82,8 +80,6 @@ Transcript:
 def home():
     return render_template("index.html")
 
-
-# 🔹 Process Transcript
 @app.route("/process_transcript", methods=["POST"])
 def process_transcript():
     data = request.json
@@ -112,11 +108,9 @@ def process_transcript():
 
     return jsonify({"message": "Processed successfully"})
 
-
-# 🔹 Get all items
 @app.route("/items")
 def get_items():
-    items = ActionItem.query.all()
+    items = ActionItem.query.order_by(ActionItem.id.desc()).all()
     return jsonify([
         {
             "id": i.id,
@@ -129,8 +123,6 @@ def get_items():
         for i in items
     ])
 
-
-# 🔹 Toggle done
 @app.route("/item/<int:item_id>/toggle", methods=["POST"])
 def toggle_done(item_id):
     item = ActionItem.query.get_or_404(item_id)
@@ -138,17 +130,14 @@ def toggle_done(item_id):
     db.session.commit()
     return jsonify({"success": True})
 
-
-# 🔹 Delete item
 @app.route("/item/<int:item_id>", methods=["DELETE"])
 def delete_item(item_id):
+    print("hi")
     item = ActionItem.query.get_or_404(item_id)
     db.session.delete(item)
     db.session.commit()
     return jsonify({"success": True})
 
-
-# 🔹 Last 5 transcripts
 @app.route("/transcripts")
 def last_transcripts():
     transcripts = Transcript.query.order_by(Transcript.created_at.desc()).limit(5)
@@ -160,11 +149,6 @@ def last_transcripts():
         for t in transcripts
     ])
 
-
-if __name__ == "__main__":
-    app.run(debug=True)
-
-# 🔹 Add new item manually
 @app.route("/item", methods=["POST"])
 def add_item():
     data = request.json
@@ -183,18 +167,24 @@ def add_item():
 
     return jsonify({"success": True})
 
-
-# 🔹 Edit item
 @app.route("/item/<int:item_id>", methods=["PUT"])
 def edit_item(item_id):
+    print("hi")
     item = ActionItem.query.get_or_404(item_id)
-    data = request.json
+    data = request.get_json()
 
-    item.task = data.get("task")
-    item.owner = data.get("owner")
-    item.due_date = data.get("due_date")
-    item.tags = data.get("tags")
+    try:
+        item.task = data.get("task")
+        item.owner = data.get("owner")
+        item.due_date = data.get("due_date")
+        item.tags = data.get("tags")
+        
+        db.session.commit()
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
 
-    db.session.commit()
 
-    return jsonify({"success": True})
+if __name__ == "__main__":
+    app.run(debug=True)
