@@ -2,14 +2,16 @@ import os
 import json
 import re
 import requests
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 from dotenv import load_dotenv
 from models import db, Transcript, ActionItem
 from sqlalchemy import text
+import uuid
 
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY", "dev-secret")
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///tracker.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -21,6 +23,11 @@ HF_API_URL = "https://router.huggingface.co/v1/chat/completions"
 
 with app.app_context():
     db.create_all()
+
+@app.before_request
+def ensure_session():
+    if "session_id" not in session:
+        session["session_id"] = str(uuid.uuid4())
 
 def extract_json_from_text(text):
     """
@@ -89,7 +96,9 @@ def process_transcript():
     if not text:
         return jsonify({"error": "No transcript provided"}), 400
 
-    transcript = Transcript(text=text)
+    transcript = Transcript(
+    text=text,
+    session_id=session["session_id"])
     db.session.add(transcript)
     db.session.commit()
 
@@ -97,12 +106,14 @@ def process_transcript():
 
     for item in items:
         action = ActionItem(
-            transcript_id=transcript.id,
-            task=item.get("task"),
-            owner=item.get("owner"),
-            due_date=item.get("due_date"),
-            tags=item.get("tags")
-        )
+    transcript_id=transcript.id,
+    session_id=session["session_id"],
+    task=item.get("task"),
+    owner=item.get("owner"),
+    due_date=item.get("due_date"),
+    tags=item.get("tags")
+)
+
         db.session.add(action)
 
     db.session.commit()
@@ -111,7 +122,10 @@ def process_transcript():
 
 @app.route("/items")
 def get_items():
-    items = ActionItem.query.order_by(ActionItem.id.desc()).all()
+    items = ActionItem.query.filter_by(
+    session_id=session["session_id"]
+).order_by(ActionItem.id.desc()).all()
+
     return jsonify([
         {
             "id": i.id,
@@ -140,7 +154,12 @@ def delete_item(item_id):
 
 @app.route("/transcripts")
 def last_transcripts():
-    transcripts = Transcript.query.order_by(Transcript.created_at.desc()).limit(5)
+    transcripts = Transcript.query.filter_by(
+    session_id=session["session_id"]
+).order_by(
+    Transcript.created_at.desc()
+).limit(5)
+
     return jsonify([
         {
             "id": t.id,
@@ -155,6 +174,7 @@ def add_item():
 
     item = ActionItem(
         transcript_id=None,
+        session_id=session["session_id"],
         task=data.get("task"),
         owner=data.get("owner"),
         due_date=data.get("due_date"),

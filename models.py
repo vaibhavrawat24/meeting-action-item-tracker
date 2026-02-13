@@ -7,6 +7,7 @@ class Transcript(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    session_id = db.Column(db.String(100), nullable=False)
 
 class ActionItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -16,3 +17,4 @@ class ActionItem(db.Model):
     due_date = db.Column(db.String(100))
     tags = db.Column(db.String(200))
     done = db.Column(db.Boolean, default=False)
+    session_id = db.Column(db.String(100), nullable=False)
