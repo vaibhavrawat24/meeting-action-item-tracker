@@ -23,6 +23,9 @@ A simple AI-powered web application that extracts action items from meeting tran
 - Mark items as done / undo
 - Filter items (All / Open / Done)
 - View history of the last 5 processed transcripts
+---
+## What Is not Implemented
+- ⚠️ This website is currently not mobile responsive due to time constraints.
 
 ---
 
@@ -93,5 +96,38 @@ http://127.0.0.1:5000
 
 - Action items are stored in a local SQLite database (tracker.db)
 - The last 5 processed transcripts are saved and displayed in the history section
+
+---
+
+## 🔎 Status Page (Health Check)
+
+The application includes a health check endpoint to verify system status.
+
+You can access it at:
+
+```bash
+http://127.0.0.1:5000/status
+```
+
+
+This endpoint returns a JSON response showing the health of:
+
+- **Backend** – Confirms the Flask server is running
+- **Database** – Verifies SQLite connection is working
+- **LLM Connection** – Checks connectivity to the Hugging Face API
+
+### Example Response
+
+```json
+{
+  "backend": "ok",
+  "database": "ok",
+  "llm_connection": "ok"
+}
+```
+
+If any dependency fails, the response will indicate the error.
+
+This endpoint helps ensure the system and its external dependencies are functioning correctly.
 
 ---
