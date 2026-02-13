@@ -81,9 +81,9 @@ async function loadItems() {
         </button>
 
        <button onclick="openEditModal(${item.id})"
-  class="px-3 py-1 text-sm border border-gray-500 text-gray-600 bg-white hover:bg-gray-50 rounded">
-  Edit
-</button>
+          class="px-3 py-1 text-sm border border-gray-500 text-gray-600 bg-white hover:bg-gray-50 rounded">
+          Edit
+        </button>
 
 
         <button onclick="deleteItem(${item.id})"
@@ -126,7 +126,6 @@ async function deleteItem(id) {
   loadItems();
 }
 
-/* 🔥 ADD ITEM */
 function addNewItem() {
   document.getElementById("modalTitle").innerText = "Add Action Item";
 
@@ -139,7 +138,7 @@ function addNewItem() {
   document.getElementById("editModal").classList.remove("hidden");
   document.getElementById("editModal").classList.add("flex");
 }
-/* 🔥 EDIT ITEM */
+
 async function editItem(id, task, owner, due_date, tags) {
   const newTask = prompt("Edit task:", task);
   if (!newTask) return;
